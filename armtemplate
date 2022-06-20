@@ -12,10 +12,29 @@
                 "description": "Name the suffix between 3-10 characters with only characters and numbers"
             }
         },
-         "connections_documentdb_name": {
+      "connections_documentdb_name": {
       "defaultValue": "documentdb",
       "type": "String"
       },
+       "connections_documentdb_1_name": {
+      "defaultValue": "documentdb-1",
+      "type": "String"
+    },
+     "azureMgmtUri": {
+      "defaultValue": "https://management.azure.com:443",
+      "type": "String",
+      "metadata": {
+        "description": "Azure Management URI"
+      }
+    }
+  },
+     "location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "String",
+      "metadata": {
+        "description": "Location where resources reside."
+      }
+    },
     "AllowAll": {
       "type": "string",
       "allowedValues": [
