@@ -33,6 +33,10 @@
     "storageContainer2": "output",
     "uniqueName": "[substring(uniqueString(variables('rgId')),0,4)]",
     "synapseWorkspaceName": "[concat('synapse-ws-',variables('paramName'))]",
+    "cosmosdbaccountname": "[replace(replace(toLower(concat(concat('cosmosdb',variables('paramName')),variables('uniqueName'))),'-',''),'_','')]",
+    "cosmosdbname": "covidformsdata",
+    "cosmosdbcontainer1": "container1",
+    "cosmosdbcontainer2": "container2",
     "storageName": "[replace(replace(toLower(concat(concat('synapsestrg',variables('paramName')),variables('uniqueName'))),'-',''),'_','')]"
     },
     
