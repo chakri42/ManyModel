@@ -12,6 +12,10 @@
                 "description": "Name the suffix between 3-10 characters with only characters and numbers"
             }
         },
+         "connections_documentdb_name": {
+      "defaultValue": "documentdb",
+      "type": "String"
+      },
     "AllowAll": {
       "type": "string",
       "allowedValues": [
