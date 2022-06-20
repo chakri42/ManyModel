@@ -177,6 +177,8 @@
         }
       }
     },
+    
+    
     {
       "type": "Microsoft.Synapse/workspaces/sqlPools",
       "apiVersion": "2020-12-01",
@@ -199,9 +201,169 @@
         "provisioningState": "Succeeded"
       }
     },
+     {
+      "name": "[variables('cosmosdbaccountname')]",
+      "type": "Microsoft.DocumentDB/databaseAccounts",
+      "apiVersion": "2019-12-12",
+      "location": "[variables('location')]",
+      "tags": {},
+      "kind": "GlobalDocumentDB",
+      "properties": {
+        "consistencyPolicy": {
+          "defaultConsistencyLevel": "Session",
+          "maxStalenessPrefix": 1,
+          "maxIntervalInSeconds": 5
+        },
+        "locations": [
+          {
+            "locationName": "[variables('location')]",
+            "failoverPriority": 0
+          }
+        ],
+        "databaseAccountOfferType": "Standard",
+        "enableAutomaticFailover": false
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+      "apiVersion": "2021-10-15",
+      "name": "[concat(variables('cosmosdbaccountname'), '/', variables('cosmosdbname'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosdbaccountname'))]"
+      ],
+      "properties": {
+        "resource": {
+          "id": "covidformsdata"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+      "name": "[concat(variables('cosmosdbaccountname'), '/', variables('cosmosdbname'), '/', variables('cosmosdbcontainer1'))]",
+      "apiVersion": "2021-04-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosdbaccountname'), variables('cosmosdbname'))]"
+      ],
+      "properties": {
+        "resource": {
+          "id": "[variables('cosmosdbcontainer1')]",
+          "partitionKey": {
+            "paths": [
+              "/id"
+            ],
+            "kind": "hash"
+          },
+          "indexingPolicy": {
+            "indexingMode": "consistent",
+            "includedPaths": [
+              {
+                "path": "/*",
+                "indexes": [
+                  {
+                    "kind": "Hash",
+                    "dataType": "String",
+                    "precision": -1
+                  }
+                ]
+              }
+            ],
+            "excludedPaths": [
+              {
+                "path": "/\"_etag\"/?"
+              }
+            ]
+          }
+        },
+        "options": {}
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+      "name": "[concat(variables('cosmosdbaccountname'), '/', variables('cosmosdbname'), '/', variables('cosmosdbcontainer2'))]",
+      "apiVersion": "2021-04-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosdbaccountname'), variables('cosmosdbname'))]"
+      ],
+      "properties": {
+        "resource": {
+          "id": "[variables('cosmosdbcontainer2')]",
+          "partitionKey": {
+            "paths": [
+              "/id"
+            ],
+            "kind": "hash"
+          },
+          "indexingPolicy": {
+            "indexingMode": "consistent",
+            "includedPaths": [
+              {
+                "path": "/*",
+                "indexes": [
+                  {
+                    "kind": "Hash",
+                    "dataType": "String",
+                    "precision": -1
+                  }
+                ]
+              }
+            ],
+            "excludedPaths": [
+              {
+                "path": "/\"_etag\"/?"
+              }
+            ]
+          }
+        },
+        "options": {}
+      }
+   },
    
+   {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('connections_documentdb_name')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosdbaccountname'))]"
+      ],
+      "kind": "V1",
+      "properties": {
+        "displayName": "cosmos",
+        "statuses": [
+          {
+            "status": "Connected"
+          }
+        ],
+        "customParameterValues": {},
+        "api": {
+          "name": "[parameters('connections_documentdb_name')]",
+          "displayName": "Azure Cosmos DB",
+          "description": "Azure Cosmos DB is a globally distributed multi-model database service designed to enable you to elastically and independently scale throughput and storage across any number of geographical regions with a comprehensive SLA.",
+          "iconUri": "[concat('https://connectoricons-prod.azureedge.net/releases/v1.0.1530/1.0.1530.2592/', parameters('connections_documentdb_name'), '/icon.png')]",
+
+          "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'),  parameters('connections_documentdb_name'))]"
+        },
+        "parameterValues": {
+
+
+          "databaseAccount": "[variables('cosmosdbaccountname')]",
+          "accessKey": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosdbaccountname')), '2015-04-08').primaryMasterKey]"
+
+        },
+
+        "testLinks": [
+          {
+            "requestUri": "[uri(parameters('azureMgmtUri'), concat('subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/connections/', parameters('connections_documentdb_name'), '/extensions/proxy/testconnection?api-version=2018-07-01-preview'))]",
+            "method": "get"
+          }
+        ]
+      }
+    },
    
- {
+
+    
+   
+   {
       "apiVersion": "2020-10-01",
       "name": "pid-cde9ebb2-7587-5acb-9601-d0887a5a4fd2",
       "type": "Microsoft.Resources/deployments",
