@@ -40,7 +40,7 @@
       "metadata": {
         "description": "Azure Management URI"
       }
-    }
+   
   },
      "location": {
       "defaultValue": "[resourceGroup().location]",
