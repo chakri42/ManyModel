@@ -16,6 +16,20 @@
       "defaultValue": "documentdb",
       "type": "String"
       },
+      "storageConnectionName": {
+      "defaultValue": "[concat('storageconnection', uniqueString(resourceGroup().id))]",
+      "type": "String",
+      "metadata": {
+        "description": "Name of the Logic Apps API connection used to connect to the Azure Storage account."
+      }
+    },
+    "storageAccountName": {
+      "defaultValue": "[concat('storage', uniqueString(resourceGroup().id))]",
+      "type": "String",
+      "metadata": {
+        "description": "Name of the Azure Storage account."
+      }
+    },
        "connections_documentdb_1_name": {
       "defaultValue": "documentdb-1",
       "type": "String"
@@ -56,6 +70,7 @@
     "storageContainer2": "output",
     "uniqueName": "[substring(uniqueString(variables('rgId')),0,4)]",
     "synapseWorkspaceName": "[concat('synapse-ws-',variables('paramName'))]",
+     "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
     "cosmosdbaccountname": "[replace(replace(toLower(concat(concat('cosmosdb',variables('paramName')),variables('uniqueName'))),'-',''),'_','')]",
     "cosmosdbname": "covidformsdata",
     "cosmosdbcontainer1": "container1",
@@ -381,6 +396,31 @@
         "testLinks": [
           {
             "requestUri": "[uri(parameters('azureMgmtUri'), concat('subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/connections/', parameters('connections_documentdb_name'), '/extensions/proxy/testconnection?api-version=2018-07-01-preview'))]",
+            "method": "get"
+          }
+        ]
+      }
+    },
+  
+   {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('storageConnectionName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ],
+      "properties": {
+        "api": {
+          "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'azureblob')]"
+        },
+        "parameterValues": {
+          "accountName": "[parameters('storageAccountName')]",
+          "accessKey": "[listKeys(variables('storageAccountId'), '2019-04-01').keys[0].value]"
+        },
+        "testLinks": [
+          {
+            "requestUri": "[uri(parameters('azureMgmtUri'), concat('subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/connections/', parameters('storageConnectionName'), '/extensions/proxy/testconnection?api-version=2018-07-01-preview'))]",
             "method": "get"
           }
         ]
