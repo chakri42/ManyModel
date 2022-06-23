@@ -451,7 +451,7 @@
           "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', variables('location'), 'azureblob')]"
         },
         "parameterValues": {
-          "accountName": "[parameters('storageAccountName')]",
+          "accountName": "[variables('storageName')]",
           "accessKey": "[listKeys(variables('storageAccountId'), '2019-04-01').keys[0].value]"
         },
         "testLinks": [
