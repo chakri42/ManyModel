@@ -1,18 +1,17 @@
- {
+{
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
- 
- "parameters": {
+  "parameters": {
     "suffixName": {
-            "defaultValue": "z25",
-            "minLength": 3,
-            "maxLength": 10,
-            "type": "String",
-            "metadata": {
-                "description": "Name the suffix between 3-10 characters with only characters and numbers"
-            }
-        },
-         "storageAccountSku": {
+      "defaultValue": "z25",
+      "minLength": 3,
+      "maxLength": 10,
+      "type": "String",
+      "metadata": {
+        "description": "Name the suffix between 3-10 characters with only characters and numbers"
+      }
+    },
+    "storageAccountSku": {
       "defaultValue": "Standard_LRS",
       "allowedValues": [
         "Standard_LRS",
@@ -43,42 +42,33 @@
         "description": "Indicates the type of storage account."
       }
     },
-   "connections_azureblob_name": {
+    "connections_azureblob_name": {
       "defaultValue": "azureblob",
       "type": "String"
     },
-    
-      "connections_documentdb_name": {
+    "connections_documentdb_name": {
       "defaultValue": "documentdb",
       "type": "String"
-      },
-      "storageConnectionName": {
+    },
+    "storageConnectionName": {
       "defaultValue": "[concat('storageconnection', uniqueString(resourceGroup().id))]",
       "type": "String",
       "metadata": {
         "description": "Name of the Logic Apps API connection used to connect to the Azure Storage account."
       }
     },
-    "storageAccountName": {
-      "defaultValue": "[concat('storage', uniqueString(resourceGroup().id))]",
-      "type": "String",
-      "metadata": {
-        "description": "Name of the Azure Storage account."
-      }
-    },
-       "connections_documentdb_1_name": {
+    "connections_documentdb_1_name": {
       "defaultValue": "documentdb-1",
       "type": "String"
     },
-     "azureMgmtUri": {
+    "azureMgmtUri": {
       "defaultValue": "https://management.azure.com:443",
       "type": "String",
       "metadata": {
         "description": "Azure Management URI"
       }
-   
-  },
-     "location": {
+    },
+    "location": {
       "defaultValue": "[resourceGroup().location]",
       "type": "String",
       "metadata": {
@@ -86,18 +76,17 @@
       }
     },
     "AllowAll": {
-      "type": "string",
+      "defaultValue": "false",
       "allowedValues": [
         "true",
         "false"
       ],
-      "defaultValue": "false",
+      "type": "String",
       "metadata": {
         "description": "Allow connections from all IP addresses to your workspace's endpoints. You can restrict these permissions to just Azure datacenter IP addresses and/or specific IP address ranges after creating the workspace."
       }
     }
   },
-
   "variables": {
     "location": "[resourceGroup().location]",
     "rgId": "[resourceGroup().id]",
@@ -106,15 +95,14 @@
     "storageContainer2": "output",
     "uniqueName": "[substring(uniqueString(variables('rgId')),0,4)]",
     "synapseWorkspaceName": "[concat('synapse-ws-',variables('paramName'))]",
-     "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+    "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
     "cosmosdbaccountname": "[replace(replace(toLower(concat(concat('cosmosdb',variables('paramName')),variables('uniqueName'))),'-',''),'_','')]",
     "cosmosdbname": "covidformsdata",
     "cosmosdbcontainer1": "container1",
     "cosmosdbcontainer2": "container2",
     "storageName": "[replace(replace(toLower(concat(concat('synapsestrg',variables('paramName')),variables('uniqueName'))),'-',''),'_','')]"
-    },
-    
-    "resources": [
+  },
+  "resources": [
     {
       "type": "Microsoft.Storage/storageAccounts",
       "apiVersion": "2019-06-01",
@@ -188,18 +176,18 @@
         "publicAccess": "Container"
       }
     },
-     {
+    {
       "type": "Microsoft.Synapse/workspaces",
       "apiVersion": "2021-06-01",
       "name": "[variables('synapseWorkspaceName')]",
       "location": "[variables('location')]",
-      "identity": {
-        "type": "SystemAssigned"
-      },
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
       ],
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "properties": {
         "defaultDataLakeStorage": {
           "accountUrl": "[concat('https://', variables('storageName') , '.dfs.core.windows.net')]",
@@ -212,16 +200,18 @@
       },
       "resources": [
         {
-          "condition": "[equals(parameters('AllowAll'),'true')]",
           "type": "firewallrules",
           "apiVersion": "2021-06-01",
           "name": "ipaddress",
           "location": "[variables('location')]",
-          "dependsOn": [ "[variables('synapseWorkspaceName')]" ],
+          "dependsOn": [
+            "[variables('synapseWorkspaceName')]"
+          ],
           "properties": {
             "startIpAddress": "0.0.0.0",
             "endIpAddress": "255.255.255.255"
-          }
+          },
+          "condition": "[equals(parameters('AllowAll'),'true')]"
         }
       ]
     },
@@ -255,8 +245,6 @@
         }
       }
     },
-    
-    
     {
       "type": "Microsoft.Synapse/workspaces/sqlPools",
       "apiVersion": "2020-12-01",
@@ -279,10 +267,10 @@
         "provisioningState": "Succeeded"
       }
     },
-     {
-      "name": "[variables('cosmosdbaccountname')]",
+    {
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "apiVersion": "2019-12-12",
+      "name": "[variables('cosmosdbaccountname')]",
       "location": "[variables('location')]",
       "tags": {},
       "kind": "GlobalDocumentDB",
@@ -317,8 +305,8 @@
     },
     {
       "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
-      "name": "[concat(variables('cosmosdbaccountname'), '/', variables('cosmosdbname'), '/', variables('cosmosdbcontainer1'))]",
       "apiVersion": "2021-04-15",
+      "name": "[concat(variables('cosmosdbaccountname'), '/', variables('cosmosdbname'), '/', variables('cosmosdbcontainer1'))]",
       "dependsOn": [
         "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosdbaccountname'), variables('cosmosdbname'))]"
       ],
@@ -357,8 +345,8 @@
     },
     {
       "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
-      "name": "[concat(variables('cosmosdbaccountname'), '/', variables('cosmosdbname'), '/', variables('cosmosdbcontainer2'))]",
       "apiVersion": "2021-04-15",
+      "name": "[concat(variables('cosmosdbaccountname'), '/', variables('cosmosdbname'), '/', variables('cosmosdbcontainer2'))]",
       "dependsOn": [
         "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosdbaccountname'), variables('cosmosdbname'))]"
       ],
@@ -394,9 +382,8 @@
         },
         "options": {}
       }
-   },
-   
-   {
+    },
+    {
       "type": "Microsoft.Web/connections",
       "apiVersion": "2016-06-01",
       "name": "[parameters('connections_documentdb_name')]",
@@ -418,17 +405,12 @@
           "displayName": "Azure Cosmos DB",
           "description": "Azure Cosmos DB is a globally distributed multi-model database service designed to enable you to elastically and independently scale throughput and storage across any number of geographical regions with a comprehensive SLA.",
           "iconUri": "[concat('https://connectoricons-prod.azureedge.net/releases/v1.0.1530/1.0.1530.2592/', parameters('connections_documentdb_name'), '/icon.png')]",
-
           "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'),  parameters('connections_documentdb_name'))]"
         },
         "parameterValues": {
-
-
           "databaseAccount": "[variables('cosmosdbaccountname')]",
           "accessKey": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosdbaccountname')), '2015-04-08').primaryMasterKey]"
-
         },
-
         "testLinks": [
           {
             "requestUri": "[uri(parameters('azureMgmtUri'), concat('subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/connections/', parameters('connections_documentdb_name'), '/extensions/proxy/testconnection?api-version=2018-07-01-preview'))]",
@@ -437,8 +419,7 @@
         ]
       }
     },
-  
-   {
+    {
       "type": "Microsoft.Web/connections",
       "apiVersion": "2018-07-01-preview",
       "name": "[parameters('storageConnectionName')]",
@@ -462,14 +443,10 @@
         ]
       }
     },
-    
-
-    
-   
-   {
+    {
+      "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "pid-cde9ebb2-7587-5acb-9601-d0887a5a4fd2",
-      "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "Incremental",
         "template": {
@@ -480,4 +457,4 @@
       }
     }
   ]
- }
+}
