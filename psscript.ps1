@@ -45,19 +45,7 @@ $shell.Namespace($destination).copyhere($item)
 Expand-ZIPFile -File "C:\AllFiles\AllFiles.zip" -Destination "C:\AllFiles\"
 
 
-Function InstallAzPowerShellModule
-{
-    <#Install-PackageProvider NuGet -Force
-    Set-PSRepository PSGallery -InstallationPolicy Trusted
-    Install-Module Az -Repository PSGallery -Force -AllowClobber#>
 
-    $WebClient = New-Object System.Net.WebClient
-    $WebClient.DownloadFile("https://github.com/Azure/azure-powershell/releases/download/v5.0.0-October2020/Az-Cmdlets-5.0.0.33612-x64.msi","C:\Packages\Az-Cmdlets-5.0.0.33612-x64.msi")
-    sleep 5
-    Start-Process msiexec.exe -Wait '/I C:\Packages\Az-Cmdlets-5.0.0.33612-x64.msi /qn' -Verbose 
-
-}
-InstallAzPowerShellModule
 
 #Import Common Functions
 $path = pwd
@@ -73,9 +61,9 @@ CreateCredFile $AzureUserName $AzurePassword $AzureTenantID $AzureSubscriptionID
 
 #Download power Bi desktop
 
-$WebClient = New-Object System.Net.WebClient
+#$WebClient = New-Object System.Net.WebClient
 
-$WebClient.DownloadFile("https://download.microsoft.com/download/8/8/0/880BCA75-79DD-466A-927D-1ABF1F5454B0/PBIDesktopSetup_x64.exe","C:\LabFiles\PBIDesktop_x64.exe")
+#$WebClient.DownloadFile("https://download.microsoft.com/download/8/8/0/880BCA75-79DD-466A-927D-1ABF1F5454B0/PBIDesktopSetup_x64.exe","C:\LabFiles\PBIDesktop_x64.exe")
 
 
 #INstall power Bi desktop
@@ -106,6 +94,7 @@ Copy-Item -Path C:\LabFiles\TestingVaccineDashboard.pbit -Destination C:\Users\p
 $AzureUserName 
 $AzurePassword 
 $passwd = ConvertTo-SecureString $AzurePassword -AsPlainText -Force
+$Sid = $AzureSubscriptionID # READ FROM FILE
 $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AzureUserName, $passwd
 
 
